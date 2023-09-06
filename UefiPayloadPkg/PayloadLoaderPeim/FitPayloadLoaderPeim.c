@@ -6,6 +6,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include <PiPei.h>
 #include <UniversalPayload/UniversalPayload.h>
+#include <Guid/UniversalPayloadBase.h>
 #include <UniversalPayload/ExtraData.h>
 
 #include <Ppi/LoadFile.h>

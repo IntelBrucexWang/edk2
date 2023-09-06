@@ -5,49 +5,33 @@ Provide UEFI Universal Payload for different bootloader to generate EFI environm
 URL: https://docs.google.com/document/d/1WxEUlCsXpc17DkJhL3XVkOW7e_KIt_zcc9tQ1trOySg/
 
 # Uefi UniversalPayload Format
-  | SpecRevision     | Binary Format | HandOffPayload - HOB | HandOffPayload - FDT |
-  |------------------|---------------|----------------------|----------------------|
-  | 0.7              | ELF           | V (Default)          | X                    |
-  | 0.9              | ELF           | V (Default)          | V                    |
-  | 1.0              | FIT           | V                    | V (Default)          |
+  | Binary Format | HandOffPayload - HOB |
+  |---------------|----------------------|
+  | ELF           | V (Default)          |
+  | FIT           | V                    |
 
 # Binary Format
-  - SpecRevision - 0.7
+  - ELF
     ```
                   +  +-----------------------+
                   |  | UniversalPayloadEntry | <----------- UefiPayloadPkg\UefiPayloadEntry\UniversalPayloadEntry.c:_ModuleEntryPoint (HOB)
                   |  +-----------------------+
-                  |  | .upld_info            | patch by llvm-objcopy
+                  |  | .upld_info            | patch it directly
     ELF Format    |  +-----------------------+
-                  |  | .upld.uefi_fv         | patch by llvm-objcopy
+                  |  | .upld.uefi_fv         | patch it directly
                   |  +-----------------------+
-                  |  | .upld.bds_fv          | patch by llvm-objcopy
+                  |  | .upld.bds_fv          | patch it directly
                   |  +-----------------------+
-                  |  | .upld.<afpx>_fv       | patch by llvm-objcopy
+                  |  | .upld.<afpx>_fv       | patch it directly
                   +  +-----------------------+
     ```
 
-  - SpecRevision - 0.9
-    ```
-                  +  +-----------------------+
-                  |  | UniversalPayloadEntry | <----------- UefiPayloadPkg\UefiPayloadEntry\UniversalPayloadEntry.c:_ModuleEntryPoint (HOB[Default] or FDT)
-                  |  +-----------------------+
-                  |  | .upld_info            | patch by llvm-objcopy
-    ELF Format    |  +-----------------------+
-                  |  | .upld.uefi_fv         | patch by llvm-objcopy
-                  |  +-----------------------+
-                  |  | .upld.bds_fv          | patch by llvm-objcopy
-                  |  +-----------------------+
-                  |  | .upld.<afpx>_fv       | patch by llvm-objcopy
-                  +  +-----------------------+
-    ```
-
-  - SpecRevision - 1.0
+  - FIT
     ```
                   +  +-----------------------+
     FIT Data      |  | FIT Header            | <----------- Generate by pylibfdt
                   +  +-----------------------+
-    PECOFF Format |  | UniversalPayloadEntry | <----------- UefiPayloadPkg\UefiPayloadEntry\FitUniversalPayloadEntry.c:_ModuleEntryPoint (HOB or FDT[Default])
+    PECOFF Format |  | UniversalPayloadEntry | <----------- UefiPayloadPkg\UefiPayloadEntry\FitUniversalPayloadEntry.c:_ModuleEntryPoint (HOB)
                   +  +-----------------------+
     Relocate Data |  | reloc-start           |
                   +  +-----------------------+
@@ -62,15 +46,11 @@ URL: https://docs.google.com/document/d/1WxEUlCsXpc17DkJhL3XVkOW7e_KIt_zcc9tQ1tr
     ```
 
 # Environment
-  - SpecRevision - 0.7
+  - ELF
     ```
     Download and install https://github.com/llvm/llvm-project/releases/tag/llvmorg-10.0.1
     ```
-  - SpecRevision - 0.9
-    ```
-    Download and install https://github.com/llvm/llvm-project/releases/tag/llvmorg-10.0.1
-    ```
-  - SpecRevision - 1.0
+  - FIT
     - Windows
       ```powershell
       Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -93,20 +73,18 @@ URL: https://docs.google.com/document/d/1WxEUlCsXpc17DkJhL3XVkOW7e_KIt_zcc9tQ1tr
     - make -C BaseTools
     - source edksetup.sh
 
-  - SpecRevision - 0.7
-    - python UefiPayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG> -s 0.7
+  - UniversalPayload.elf
+    - python UefiPayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG>
     - llvm-objdump -h Build/UefiPayloadPkgX64/UniversalPayload.elf
-  - SpecRevision - 0.9
-    - python UefiPayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG> -s 0.9
-    - llvm-objdump -h Build/UefiPayloadPkgX64/UniversalPayload.elf
-  - SpecRevision - 1.0
-    - python UefiPayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG> -s 1.0
+
+  - UniversalPayload.fit
+    - python UefiPayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG> --Fit
     - fdtdump Build/UefiPayloadPkgX64/UniversalPayload.fit
 
 # Edk2boot + UefiUniversalPayload
-Currently, Spec 0.7 Edk2boot use below way to support compress and sign.
+ELF Edk2boot use below way to support compress and sign.
 
-- Spec 0.7 Behavior - Edk2boot + UefiUniversalPayload.elf
+- ELF Behavior - Edk2boot + UefiUniversalPayload.elf
   ```
   Boot Flow
   +-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+-------------------+
@@ -126,7 +104,7 @@ Currently, Spec 0.7 Edk2boot use below way to support compress and sign.
   +-------------------+
   | Other Firmware    |
   +-------------------+
-  | ...               |  FMMT                                                                                                                                                                        UniversalPayloadBuild.py -s 0.7
+  | ...               |  FMMT                                                                                                                                                                        UniversalPayloadBuild.py
   +-------------------+<----------------+-----------------------+  GenFfs    +-----------------------+  Rsa2048Sha256 Sign +-----------------------+  LzmaCompress +----------------------+  GenSec +--------------------------------+
   |                   |                 | EDK2 FFS Header       |<-----------| Rsa2048Sha256 Hash    |<--------------------| UniversalPayload.lzma |<--------------| EDK2 SEC Header      |<--------| UniversalPayload.elf           |
   | RAW Data          |                 +-----------------------+            +-----------------------+                     +-----------------------+               +----------------------+         +--------------------------------+
@@ -148,19 +126,19 @@ Currently, Spec 0.7 Edk2boot use below way to support compress and sign.
                                                                                                                                                                    +----------------------+
   ```
 
-Expected, Spec 1.0 Edk2boot use below way to support compress and sign
-- Spec 1.0 Behavior - Edk2boot + UefiUniversalPayload.fit
+FIT Edk2boot use below way to support compress and sign
+- FIT Behavior - Edk2boot + UefiUniversalPayload.fit
   ```
   Boot Flow
   +-------------------------------------------------------------------------------------+------------------------------------------------------------------------+-------------------+
   | Platform Init                                                                       | Universal Loader Interface                                             | OS                |
   +-------------------------------------------------------------------------------------+------------------------------------------------------------------------+-------------------+
-                                                                                                      HOBs or *FDT[Default]
+                                                                                                      HOBs
   SEC -> PEI -> DXE -> DXE IPL -> *UefiPayloadPkg\PayloadLoaderPeim\PayloadLoaderPeim.c ----------------------------------------------> Load UniversalPayload.fit -> Operation System
 
   Binary Format
 
-  | Platform Initialize - Edk2                                                                                                | UniversalPayload - Edk2 (UniversalPayloadBuild.py -s 1.0)                               |
+  | Platform Initialize - Edk2                                                                                                | UniversalPayload - Edk2 (UniversalPayloadBuild.py --Fit)                                |
   +---------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------+
 
   +-------------------+
@@ -168,11 +146,11 @@ Expected, Spec 1.0 Edk2boot use below way to support compress and sign
   +-------------------+
   | Other Firmware    |
   +-------------------+
-  | ...               |  FMMT                                                                                                  UniversalPayloadBuild.py -s 1.0   tianocore -> data-offset
+  | ...               |  FMMT                                                                                                  UniversalPayloadBuild.py --Fit    tianocore -> data-offset
   +-------------------+<----------------+--------------------------------+  GenFfs +--------------------------------+  GenSec +--------------------------------+ tianocore -> reloc-start +--------------------------+
   |                   |                 | EDK2 FFS Header                |<--------| EDK2 SEC Header                |<--------| FIT Header                     |<-------------------------| UniversalPayload.pecoff  |
-  |                   |                 +--------------------------------+         +--------------------------------+         | compatible="universal-payload";|                          +--------------------------+
-  |                   |                 | EDK2 SEC Header                |         | FIT Header                     |         | upl-version <0x0100>;          |
+  |                   |                 +--------------------------------+         +--------------------------------+         | description = “Uefi Payload”;  |                          +--------------------------+
+  |                   |                 | EDK2 SEC Header                |         | FIT Header                     |         | ...                            |
   | RAW Data          |                 +--------------------------------+         |                                |         | images {                       | uefi-fv -> data-offset   +--------------------------+
   |                   |                 | FIT Header                     |         |                                |         |   tianocore {...};             |<-------------------------| uefi_fv                  |
   |                   |                 |                                |         +--------------------------------+         |   uefi-fv {...};               | bds-fv -> data-offset    +--------------------------+

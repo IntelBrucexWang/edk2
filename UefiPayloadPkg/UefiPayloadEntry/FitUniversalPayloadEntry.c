@@ -5,6 +5,7 @@
 
 #include "UefiPayloadEntry.h"
 #include <Library/FdtLib.h>
+#include <Guid/UniversalPayloadBase.h>
 
 #define MEMORY_ATTRIBUTE_MASK  (EFI_RESOURCE_ATTRIBUTE_PRESENT             |        \
                                        EFI_RESOURCE_ATTRIBUTE_INITIALIZED         | \
@@ -417,18 +418,21 @@ BuildFitLoadablesFvHob (
   if (Config1Node <= 0) {
     return EFI_NOT_FOUND;
   }
-  ImageNode   = FdtSubnodeOffsetNameLen (Fdt, 0, "images", (INT32)AsciiStrLen ("images"));
+
+  ImageNode = FdtSubnodeOffsetNameLen (Fdt, 0, "images", (INT32)AsciiStrLen ("images"));
   if (ImageNode <= 0) {
     return EFI_NOT_FOUND;
   }
+
   FvNode = FdtSubnodeOffsetNameLen (Fdt, ImageNode, "tianocore", (INT32)AsciiStrLen ("tianocore"));
   Depth  = FdtNodeDepth (Fdt, FvNode);
   FvNode = FdtNextNode (Fdt, FvNode, &Depth);
   Fvname = FdtGetName (Fdt, FvNode, &TempLen);
-  while ((AsciiStrCmp((Fvname + AsciiStrLen(Fvname) - 2), "fv") == 0)) {
+  while ((AsciiStrCmp ((Fvname + AsciiStrLen (Fvname) - 2), "fv") == 0)) {
     if (FvNode <= 0) {
       return EFI_NOT_FOUND;
     }
+
     PropertyPtr = FdtGetProperty (Fdt, FvNode, "data-offset", &TempLen);
     Data32      = (UINT32 *)(PropertyPtr->Data);
     DataOffset  = SwapBytes32 (*Data32);
@@ -452,10 +456,11 @@ BuildFitLoadablesFvHob (
       DataSize,
       DataOffset
       ));
-    Depth   = FdtNodeDepth (Fdt, FvNode);
-    FvNode  = FdtNextNode (Fdt, FvNode, &Depth);
-    Fvname  = FdtGetName (Fdt, FvNode, &TempLen);
+    Depth  = FdtNodeDepth (Fdt, FvNode);
+    FvNode = FdtNextNode (Fdt, FvNode, &Depth);
+    Fvname = FdtGetName (Fdt, FvNode, &TempLen);
   }
+
   return EFI_SUCCESS;
 }
 

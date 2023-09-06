@@ -116,7 +116,7 @@ def BuildUniversalPayload(Args):
     ToolChain = Args.ToolChain
     Quiet     = "--quiet"  if Args.Quiet else ""
 
-    if Args.PayloadEntryFormat == "pecoff":
+    if Args.Fit == True:
         PayloadEntryToolChain = ToolChain
         Args.Macro.append("UNIVERSAL_PAYLOAD_FORMAT=FIT")
         UpldEntryFile = "FitUniversalPayloadEntry"
@@ -137,8 +137,6 @@ def BuildUniversalPayload(Args):
         ObjCopyFlag    = "elf32-i386"
         EntryOutputDir = os.path.join(BuildDir, "{}_{}".format (BuildTarget, PayloadEntryToolChain), os.path.normpath("IA32/UefiPayloadPkg/UefiPayloadEntry/{}/DEBUG/{}.dll".format (UpldEntryFile, UpldEntryFile)))
 
-    if Args.PreBuildUplBinary is not None:
-        EntryOutputDir = os.path.abspath(Args.PreBuildUplBinary)
     EntryModuleInf = os.path.normpath("UefiPayloadPkg/UefiPayloadEntry/{}.inf".format (UpldEntryFile))
     DscPath = os.path.normpath("UefiPayloadPkg/UefiPayloadPkg.dsc")
     DxeFvOutputDir = os.path.join(BuildDir, "{}_{}".format (BuildTarget, ToolChain), os.path.normpath("FV/DXEFV.Fv"))
@@ -184,10 +182,18 @@ def BuildUniversalPayload(Args):
         BuildModule += Pcds
         BuildModule += Defines
         RunCommand(BuildModule)
+
+    if Args.PreBuildUplBinary is not None:
+        if Args.Fit == False:
+            EntryOutputDir = os.path.join(BuildDir, "UniversalPayload.elf")
+        else:
+            EntryOutputDir = os.path.join(BuildDir, "UniversalPayload.fit")
+        shutil.copy (os.path.abspath(Args.PreBuildUplBinary), EntryOutputDir)
+
     #
-    # Buid Universal Payload Information Section ".upld_info"
+    # Build Universal Payload Information Section ".upld_info"
     #
-    if Args.SpecRevision < 0x0100:
+    if Args.Fit == False:
         upld_info_hdr = UPLD_INFO_HEADER()
         upld_info_hdr.SpecRevision = Args.SpecRevision
         upld_info_hdr.Revision = Args.Revision
@@ -201,7 +207,10 @@ def BuildUniversalPayload(Args):
         if Args.BuildEntryOnly == False:
             import Tools.ElfFv as ElfFv
             ElfFv.ReplaceFv (EntryOutputDir, UpldInfoFile, '.upld_info', Alignment = 4)
-    shutil.copy (EntryOutputDir, os.path.join(BuildDir, 'UniversalPayload.{}'.format (Args.PayloadEntryFormat)))
+    if Args.Fit == False:
+        shutil.copy (EntryOutputDir, os.path.join(BuildDir, 'UniversalPayload.elf'))
+    else:
+        shutil.copy (EntryOutputDir, os.path.join(BuildDir, 'UniversalPayload.fit'))
 
     MultiFvList = []
     if Args.BuildEntryOnly == False:
@@ -212,7 +221,7 @@ def BuildUniversalPayload(Args):
         ]
 
 
-    if Args.SpecRevision >= 0x0100:
+    if Args.Fit == True:
         import Tools.MkFitImage as MkFitImage
         import pefile
         fit_image_info_header               = MkFitImage.FIT_IMAGE_INFO_HEADER()
@@ -226,7 +235,7 @@ def BuildUniversalPayload(Args):
         fit_image_info_header.Capabilities  = None
         fit_image_info_header.Producer      = Args.ProducerId.lower()
         fit_image_info_header.ImageId       = Args.ImageId.lower()
-        fit_image_info_header.Binary        = os.path.join(BuildDir, 'UniversalPayload.{}'.format (Args.PayloadEntryFormat))
+        fit_image_info_header.Binary        = os.path.join(BuildDir, 'UniversalPayload.fit')
         fit_image_info_header.TargetPath    = os.path.join(BuildDir, 'UniversalPayload.fit')
         fit_image_info_header.UefifvPath    = DxeFvOutputDir
         fit_image_info_header.BdsfvPath     = BdsFvOutputDir
@@ -295,9 +304,9 @@ def BuildUniversalPayload(Args):
         if MkFitImage.MakeFitImage(fit_image_info_header) is True:
             print('\nSuccessfully build Fit Image')
         else:
-            sys.exit(1)
-        Args.PayloadEntryFormat = 'fit'
-    return MultiFvList, os.path.join(BuildDir, 'UniversalPayload.{}'.format (Args.PayloadEntryFormat))
+            sys.exit(1)        return MultiFvList, os.path.join(BuildDir, 'UniversalPayload.fit')
+    else:
+        return MultiFvList, os.path.join(BuildDir, 'UniversalPayload.elf')
 
 def main():
     parser = argparse.ArgumentParser(description='For building Universal Payload')
@@ -315,16 +324,15 @@ def main():
     parser.add_argument("-pb", "--PreBuildUplBinary", default=None, help='Specify the UniversalPayload file')
     parser.add_argument("-sk", "--SkipBuild", action='store_true', help='Skip UniversalPayload build')
     parser.add_argument("-af", "--AddFv", type=ValidateAddFv, action='append', help='Add or replace specific FV into payload, Ex: uefi_fv=XXX.fv')
-    known_args, _ = parser.parse_known_args()
-    if (known_args.SpecRevision >= 0x0100):
-        parser.add_argument('--pecoff', dest='PayloadEntryFormat', action='store_true', default=True)
-        parser.add_argument('-l', "--LoadAddress", type=int, help='Specify payload load address', default =0x000800000)
+    parser.add_argument("-f", "--Fit", action='store_true', help='Build UniversalPayload file as UniversalPayload.fit', default=False)
+    parser.add_argument('-l', "--LoadAddress", type=int, help='Specify payload load address', default =0x000800000)
 
     args = parser.parse_args()
     if (hasattr (args, 'PayloadEntryFormat') == False):
         args.PayloadEntryFormat = 'elf'
     else:
         args.PayloadEntryFormat = "pecoff" if args.PayloadEntryFormat == True else "elf"
+
 
     MultiFvList = []
     UniversalPayloadBinary = args.PreBuildUplBinary
@@ -337,7 +345,7 @@ def main():
 
     def ReplaceFv (UplBinary, SectionFvFile, SectionName):
         print (bcolors.OKGREEN + "Patch {}={} into {}".format (SectionName, SectionFvFile, UplBinary) + bcolors.ENDC)
-        if (args.SpecRevision < 0x0100):
+        if (args.Fit == False):
             import Tools.ElfFv as ElfFv
             return ElfFv.ReplaceFv (UplBinary, SectionFvFile, '.upld.{}'.format (SectionName))
         else:

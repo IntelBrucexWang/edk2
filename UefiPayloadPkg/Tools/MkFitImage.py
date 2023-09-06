@@ -55,12 +55,13 @@ def CreatFdt(Fdt):
 def BuildConfNode(Fdt, ParentNode, MultiImage):
     ConfNode1     = libfdt.fdt_add_subnode(Fdt, ParentNode, 'conf-1')
 
+    libfdt.fdt_setprop_u32(Fdt, ConfNode1, 'require-fit', 1)
     libfdt.fdt_setprop(Fdt, ConfNode1, 'firmware', bytes('tianocore', 'utf-8'), len('tianocore') + 1)
 
 def BuildFvImageNode(Fdt, InfoHeader, ParentNode, DataOffset, DataSize, Description):
     libfdt.fdt_setprop_u32(Fdt, ParentNode, 'data-size', DataSize)
     libfdt.fdt_setprop_u32(Fdt, ParentNode, 'data-offset', DataOffset)
-    libfdt.fdt_setprop(Fdt, ParentNode, 'compression', bytes('lzma',                'utf-8'), len('lzma') + 1)
+    libfdt.fdt_setprop(Fdt, ParentNode, 'compression', bytes('none',                'utf-8'), len('none') + 1)
     libfdt.fdt_setprop(Fdt, ParentNode, 'project ',    bytes('tianocore',           'utf-8'), len('tianocore') + 1)
     libfdt.fdt_setprop(Fdt, ParentNode, 'arch',        bytes('x86_64',              'utf-8'), len('x86_64') + 1)
     libfdt.fdt_setprop(Fdt, ParentNode, 'type',        bytes('flat-binary',         'utf-8'), len('flat-binary') + 1)
@@ -182,9 +183,12 @@ def ReplaceFv (UplBinary, SectionFvFile, SectionName):
         NewFitHeader = bytearray(Dtb[0:Fit.totalsize()])
         FitSize      = len(Dtb)
 
+<<<<<<< HEAD
         if int.from_bytes (libfdt.fdt_getprop (NewFitHeader, 0, 'spec-version')[0], 'big') < 0x0100:
             raise Exception ("UPL version is too low to support it.")
 
+=======
+>>>>>>> 2680d51ed3 (UefiPayloadPkg: Add FIT support)
         LoadablesList = []
         ImagesNode    = libfdt.fdt_subnode_offset(NewFitHeader, 0, 'images')
         FvNode        = libfdt.fdt_subnode_offset(NewFitHeader, ImagesNode, 'uefi-fv')
@@ -238,6 +242,10 @@ def ReplaceFv (UplBinary, SectionFvFile, SectionName):
                     libfdt.fdt_setprop_u32(NewFitHeader, ImageNode, 'data-offset', ImageOffset + OffsetDelta)
 
         ConfNodes     = libfdt.fdt_subnode_offset(NewFitHeader, 0, 'configurations')
+<<<<<<< HEAD
+=======
+        libfdt.fdt_setprop(NewFitHeader, ConfNodes, 'default ', bytes('conf-1', 'utf-8'), len('conf-1') + 1)
+>>>>>>> 2680d51ed3 (UefiPayloadPkg: Add FIT support)
         ConfNode      = libfdt.fdt_subnode_offset(NewFitHeader, ConfNodes, 'conf-1')
 
         libfdt.fdt_setprop_u32(NewFitHeader, 0, 'size', FitSize)
