@@ -183,12 +183,6 @@ def ReplaceFv (UplBinary, SectionFvFile, SectionName):
         NewFitHeader = bytearray(Dtb[0:Fit.totalsize()])
         FitSize      = len(Dtb)
 
-<<<<<<< HEAD
-        if int.from_bytes (libfdt.fdt_getprop (NewFitHeader, 0, 'spec-version')[0], 'big') < 0x0100:
-            raise Exception ("UPL version is too low to support it.")
-
-=======
->>>>>>> 2680d51ed3 (UefiPayloadPkg: Add FIT support)
         LoadablesList = []
         ImagesNode    = libfdt.fdt_subnode_offset(NewFitHeader, 0, 'images')
         FvNode        = libfdt.fdt_subnode_offset(NewFitHeader, ImagesNode, 'uefi-fv')
@@ -242,10 +236,7 @@ def ReplaceFv (UplBinary, SectionFvFile, SectionName):
                     libfdt.fdt_setprop_u32(NewFitHeader, ImageNode, 'data-offset', ImageOffset + OffsetDelta)
 
         ConfNodes     = libfdt.fdt_subnode_offset(NewFitHeader, 0, 'configurations')
-<<<<<<< HEAD
-=======
         libfdt.fdt_setprop(NewFitHeader, ConfNodes, 'default ', bytes('conf-1', 'utf-8'), len('conf-1') + 1)
->>>>>>> 2680d51ed3 (UefiPayloadPkg: Add FIT support)
         ConfNode      = libfdt.fdt_subnode_offset(NewFitHeader, ConfNodes, 'conf-1')
 
         libfdt.fdt_setprop_u32(NewFitHeader, 0, 'size', FitSize)
