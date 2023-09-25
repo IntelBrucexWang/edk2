@@ -121,6 +121,7 @@ def BuildFitImage(Fdt, InfoHeader):
 
     # Build image
     DataOffset = InfoHeader.DataOffset
+    MultiImage = [item for item in MultiImage if exists(item[1])]
     for Index in range (0, len (MultiImage)):
         _, Path, _, _, _, _ = MultiImage[Index]
         if exists(Path) == 1:

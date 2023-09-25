@@ -304,7 +304,8 @@ def BuildUniversalPayload(Args):
         if MkFitImage.MakeFitImage(fit_image_info_header) is True:
             print('\nSuccessfully build Fit Image')
         else:
-            sys.exit(1)        return MultiFvList, os.path.join(BuildDir, 'UniversalPayload.fit')
+            sys.exit(1)
+        return MultiFvList, os.path.join(BuildDir, 'UniversalPayload.fit')
     else:
         return MultiFvList, os.path.join(BuildDir, 'UniversalPayload.elf')
 
@@ -328,10 +329,6 @@ def main():
     parser.add_argument('-l', "--LoadAddress", type=int, help='Specify payload load address', default =0x000800000)
 
     args = parser.parse_args()
-    if (hasattr (args, 'PayloadEntryFormat') == False):
-        args.PayloadEntryFormat = 'elf'
-    else:
-        args.PayloadEntryFormat = "pecoff" if args.PayloadEntryFormat == True else "elf"
 
 
     MultiFvList = []
