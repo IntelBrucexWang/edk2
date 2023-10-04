@@ -55,6 +55,15 @@
 
 [Guids]
   gUniversalPayloadBaseGuid              ## PRODUCE
+  gUniversalPayloadExtraDataGuid         ## PRODUCES
+  gUniversalPayloadBaseGuid              ## PRODUCE
+  gEfiHobMemoryAllocModuleGuid
+  gEfiHobMemoryAllocStackGuid
+  gEfiHobMemoryAllocBspStoreGuid
+  gUniversalPayloadAcpiTableGuid
+  gUniversalPayloadExtraDataGuid
+  gUniversalPayloadBaseGuid
+  gUniversalPayloadDeviceTreeGuid
 
 [Depex]
   TRUE

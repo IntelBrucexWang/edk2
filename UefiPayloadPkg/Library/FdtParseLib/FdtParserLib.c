@@ -28,15 +28,6 @@
 #include <Library/PrintLib.h>
 #include <Library/FdtLib.h>
 
-
-#define MEMORY_ATTRIBUTE_DEFAULT  (EFI_RESOURCE_ATTRIBUTE_PRESENT                   | \
-                                     EFI_RESOURCE_ATTRIBUTE_INITIALIZED             | \
-                                     EFI_RESOURCE_ATTRIBUTE_TESTED                  | \
-                                     EFI_RESOURCE_ATTRIBUTE_UNCACHEABLE             | \
-                                     EFI_RESOURCE_ATTRIBUTE_WRITE_COMBINEABLE       | \
-                                     EFI_RESOURCE_ATTRIBUTE_WRITE_THROUGH_CACHEABLE | \
-                                     EFI_RESOURCE_ATTRIBUTE_WRITE_BACK_CACHEABLE    )
-
 extern VOID  *mHobList;
 
 /**
@@ -91,7 +82,7 @@ ParseDtb (
   UINT32                                   *Data32;
   UINT64                                   *Data64;
   UINT64                                   StartAddress;
-#if FixedPcdGet8 (PcdUplInterface) == 1
+#if FixedPcdGet8 (PcdFdtSupport) == 1
   INT32                                    SubNode;
   UINT64                                   NumberOfBytes;
   UINT32                                   Attribute;
@@ -105,7 +96,9 @@ ParseDtb (
   UNIVERSAL_PAYLOAD_SMBIOS_TABLE           *SmbiosTable;
   EFI_PEI_GRAPHICS_INFO_HOB                *GraphicsInfo;
   EFI_PEI_GRAPHICS_DEVICE_INFO_HOB         *GraphicsDev;
+#if FixedPcdGet8 (PcdFdtSupport) == 0
   ACPI_BOARD_INFO                          *AcpiBoardInfo;
+#endif
   UINT8                                    SizeOfMemorySpace;
   UINT64                                   FrameBufferBase;
   UINT64                                   FrameBufferSize;
@@ -161,8 +154,10 @@ ParseDtb (
     DEBUG ((DEBUG_INFO, "\n         Property(00000000)  acpi"));
     DEBUG ((DEBUG_INFO, "  %016lX\n", StartAddress));
     PldAcpiTable->Rsdp = (EFI_PHYSICAL_ADDRESS)StartAddress;
+#if FixedPcdGet8 (PcdFdtSupport) == 0
     AcpiBoardInfo = BuildHobFromAcpi ((UINT64)PldAcpiTable->Rsdp);
     ASSERT (AcpiBoardInfo != NULL);
+#endif
   }
 
   for (Node = FdtNextNode (Fdt, 0, &Depth); Node >= 0; Node = FdtNextNode (Fdt, Node, &Depth)) {
@@ -173,7 +168,7 @@ ParseDtb (
     NodePtr = (FDT_NODE_HEADER *) ((CONST CHAR8 *) Fdt + Node + Fdt32ToCpu (((FDT_HEADER *) Fdt)->OffsetDtStruct));
     DEBUG ((DEBUG_INFO, "\n   Node(%08x)  %a   Depth %x", Node, NodePtr->Name, Depth));
 
-#if FixedPcdGet8 (PcdUplInterface) == 1
+#if FixedPcdGet8 (PcdFdtSupport) == 1
     // memory node
     if (AsciiStrnCmp (NodePtr->Name, "memory@", AsciiStrLen("memory@")) == 0) {
       Attribute = MEMORY_ATTRIBUTE_DEFAULT;
@@ -599,7 +594,8 @@ UplInitHob (
   EFI_PHYSICAL_ADDRESS           MemoryTop;
 
   DEBUG ((DEBUG_INFO, "FdtBase = 0x%x\n", FdtBase));
-
+  IoWrite(0x80,0xBB);
+  IoWrite(0x80,0xB0);
   //
   // Check parameter type(
   //

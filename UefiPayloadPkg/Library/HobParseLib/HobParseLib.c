@@ -283,9 +283,11 @@ BuildHobs (
   EFI_PHYSICAL_ADDRESS          MemoryTop;
   EFI_HOB_RESOURCE_DESCRIPTOR   *PhitResourceHob;
   EFI_HOB_RESOURCE_DESCRIPTOR   *ResourceHob;
+#if FixedPcdGet8 (PcdUplInterface) == 0
   UINT8                         *GuidHob;
   UNIVERSAL_PAYLOAD_ACPI_TABLE  *AcpiTable;
   ACPI_BOARD_INFO               *AcpiBoardInfo;
+#endif
   EFI_HOB_HANDOFF_INFO_TABLE    *HobInfo;
 
   Hob.Raw           = (UINT8 *)BootloaderParameter;

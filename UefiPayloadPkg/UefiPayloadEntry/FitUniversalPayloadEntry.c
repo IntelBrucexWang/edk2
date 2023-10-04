@@ -4,7 +4,7 @@
 **/
 
 #include "UefiPayloadEntry.h"
-
+#include <Library/IoLib.h>
 #include <FitLib.h>
 #include <Elf32.h>
 #include <Elf64.h>
@@ -443,21 +443,19 @@ _ModuleEntryPoint (
 #endif
   EFI_PEI_HOB_POINTERS        Hob;
   EFI_FIRMWARE_VOLUME_HEADER  *DxeFv;
-
-  DEBUG ((DEBUG_INFO, "Entering Universal Payload1...\n"));
+  IoWrite8(0x80,0xF0);
   DxeFv    = NULL;
   // Call constructor with default values for all libraries
-  DEBUG ((DEBUG_INFO, "Entering Universal Payload2...\n"));
   ProcessLibraryConstructorList ();
-  DEBUG ((DEBUG_INFO, "Entering Universal Payload3...\n"));
   // Initialize floating point operating environment to be compliant with UEFI spec.
   InitializeFloatingPointUnits ();
-
+  IoWrite8(0x80,0xF1);
   DEBUG ((DEBUG_INFO, "Entering Universal Payload...\n"));
   DEBUG ((DEBUG_INFO, "sizeof(UINTN) = 0x%x\n", sizeof (UINTN)));
   DEBUG ((DEBUG_INFO, "BootloaderParameter = 0x%x\n", BootloaderParameter));
 
 #if FixedPcdGet8 (PcdFdtSupport) == 0
+  IoWrite8(0x80,0xF2);
   mHobList = (VOID *) BootloaderParameter;
 
   DEBUG ((DEBUG_INFO, "Start build HOB...\n"));
@@ -468,6 +466,7 @@ _ModuleEntryPoint (
 #endif
 
 #if FixedPcdGet8 (PcdFdtSupport) == 1 || FixedPcdGet8 (PcdFdtSupport) == 2
+  IoWrite8(0x80,0xF3);
   DEBUG ((DEBUG_INFO, "Start parsing FDT...\n"));
   HobListPtr = UplInitHob ((VOID *) BootloaderParameter);
 

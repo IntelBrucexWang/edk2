@@ -20,7 +20,7 @@
 #include <Library/BaseMemoryLib.h>
 #include <Library/SerialPortLib.h>
 #include <Library/DebugPrintErrorLevelLib.h>
-
+#include <Library/IoLib.h>
 //
 // Define the maximum debug and assert message length that this library supports
 //

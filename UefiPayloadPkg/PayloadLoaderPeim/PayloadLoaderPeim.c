@@ -88,12 +88,15 @@ PeiLoadFileLoadPayload (
 {
   EFI_STATUS                    Status;
   VOID                          *Elf;
-  UNIVERSAL_PAYLOAD_BASE        *PayloadBase;
+  UNIVERSAL_PAYLOAD_EXTRA_DATA  *ExtraData;
   ELF_IMAGE_CONTEXT             Context;
   UINT32                        Index;
+  UINT16                        ExtraDataIndex;
+  UNIVERSAL_PAYLOAD_BASE        *PayloadBase;
   CHAR8                         *SectionName;
   UINTN                         Offset;
   UINTN                         Size;
+  UINT32                        ExtraDataCount;
   UINTN                         Instance;
   UINTN                         Length;
 
@@ -129,6 +132,7 @@ PeiLoadFileLoadPayload (
   //
   // Get UNIVERSAL_PAYLOAD_INFO_HEADER and number of additional PLD sections.
   //
+  ExtraDataCount = 0;
   for (Index = 0; Index < Context.ShNum; Index++) {
     Status = GetElfSectionName (&Context, Index, &SectionName);
     if (EFI_ERROR (Status)) {
@@ -138,12 +142,48 @@ PeiLoadFileLoadPayload (
     DEBUG ((DEBUG_INFO, "Payload Section[%d]: %a\n", Index, SectionName));
     if (AsciiStrCmp (SectionName, UNIVERSAL_PAYLOAD_INFO_SEC_NAME) == 0) {
       Status = GetElfSectionPos (&Context, Index, &Offset, &Size);
+    } else if (AsciiStrnCmp (SectionName, UNIVERSAL_PAYLOAD_EXTRA_SEC_NAME_PREFIX, UNIVERSAL_PAYLOAD_EXTRA_SEC_NAME_PREFIX_LENGTH) == 0) {
+      Status = GetElfSectionPos (&Context, Index, &Offset, &Size);
+      if (!EFI_ERROR (Status)) {
+        ExtraDataCount++;
+      }
     }
   }
 
   //
   // Report the additional PLD sections through HOB.
   //
+  Length    = sizeof (UNIVERSAL_PAYLOAD_EXTRA_DATA) + ExtraDataCount * sizeof (UNIVERSAL_PAYLOAD_EXTRA_DATA_ENTRY);
+  ExtraData = BuildGuidHob (
+                &gUniversalPayloadExtraDataGuid,
+                Length
+                );
+  ExtraData->Count           = ExtraDataCount;
+  ExtraData->Header.Revision = UNIVERSAL_PAYLOAD_EXTRA_DATA_REVISION;
+  ExtraData->Header.Length   = (UINT16)Length;
+  if (ExtraDataCount != 0) {
+    for (ExtraDataIndex = 0, Index = 0; Index < Context.ShNum; Index++) {
+      Status = GetElfSectionName (&Context, Index, &SectionName);
+      if (EFI_ERROR (Status)) {
+        continue;
+      }
+
+      if (AsciiStrnCmp (SectionName, UNIVERSAL_PAYLOAD_EXTRA_SEC_NAME_PREFIX, UNIVERSAL_PAYLOAD_EXTRA_SEC_NAME_PREFIX_LENGTH) == 0) {
+        Status = GetElfSectionPos (&Context, Index, &Offset, &Size);
+        if (!EFI_ERROR (Status)) {
+          ASSERT (ExtraDataIndex < ExtraDataCount);
+          AsciiStrCpyS (
+            ExtraData->Entry[ExtraDataIndex].Identifier,
+            sizeof (ExtraData->Entry[ExtraDataIndex].Identifier),
+            SectionName + UNIVERSAL_PAYLOAD_EXTRA_SEC_NAME_PREFIX_LENGTH
+            );
+          ExtraData->Entry[ExtraDataIndex].Base = (UINTN)(Context.FileBase + Offset);
+          ExtraData->Entry[ExtraDataIndex].Size = Size;
+          ExtraDataIndex++;
+        }
+      }
+    }
+  }
   if (Context.ReloadRequired || (Context.PreferredImageAddress != Context.FileBase)) {
     Context.ImageAddress = AllocatePages (EFI_SIZE_TO_PAGES (Context.ImageSize));
   } else {

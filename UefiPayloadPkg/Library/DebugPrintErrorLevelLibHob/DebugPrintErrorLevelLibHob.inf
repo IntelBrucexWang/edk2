@@ -31,6 +31,7 @@
 [LibraryClasses]
   PcdLib
   HobLib
+  IoLib
 
 [Pcd]
   gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel

@@ -15,6 +15,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/HobLib.h>
 #include "X64/VirtualMemory.h"
 #include "UefiPayloadEntry.h"
+#include <UniversalPayload/DeviceTree.h>
 #define STACK_SIZE  0x20000
 
 /**
@@ -39,6 +40,11 @@ HandOffToDxeCore (
   UINTN  PageTables;
   VOID   *GhcbBase;
   UINTN  GhcbSize;
+#if FixedPcdGet8 (PcdFdtSupport) == 1
+  UINT8                            *GuidHob;
+  UNIVERSAL_PAYLOAD_DEVICE_TREE    *FdtHob;
+#endif
+  DEBUG ((DEBUG_INFO, "Transfer the control to the entry point of DxeCore via UefiPayloadEntry\n:"));
 
   //
   // Clear page 0 and mark it as allocated if NULL pointer detection is enabled.
@@ -86,6 +92,14 @@ HandOffToDxeCore (
     ASSERT (PcdGetBool (PcdSetNxForStack) == FALSE);
     ASSERT (PcdGetBool (PcdCpuStackGuard) == FALSE);
   }
+#if FixedPcdGet8 (PcdFdtSupport) == 1
+  //
+  // Get FDT blob address
+  //
+  GuidHob = GetFirstGuidHob (&gUniversalPayloadDeviceTreeGuid);
+  ASSERT (GuidHob != NULL);
+  FdtHob = (UNIVERSAL_PAYLOAD_DEVICE_TREE *) GET_GUID_HOB_DATA (GuidHob);
+#endif
 
   if (FeaturePcdGet (PcdDxeIplBuildPageTables)) {
     AsmWriteCr3 (PageTables);

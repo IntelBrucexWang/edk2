@@ -12,7 +12,7 @@
 #include <Library/PlatformHookLib.h>
 #include <Library/PcdLib.h>
 #include <Library/HobLib.h>
-
+#include <Library/IoLib.h>
 /** Library Constructor
 
   @retval RETURN_SUCCESS  Success.
@@ -50,24 +50,38 @@ PlatformHookSerialPortInitialize (
   UNIVERSAL_PAYLOAD_SERIAL_PORT_INFO  *SerialPortInfo;
   UINT8                               *GuidHob;
   UNIVERSAL_PAYLOAD_GENERIC_HEADER    *GenericHeader;
+IoWrite8(0x80,0xD0);
 
   if (GetHobList() == NULL) {
+IoWrite8(0x80,0xD2);
     Status = PcdSetBoolS (PcdSerialUseMmio, FALSE);
+IoWrite8(0x80,0xD3);
     if (RETURN_ERROR (Status)) {
+IoWrite8(0x80,0xD4);
       return Status;
     }
+IoWrite8(0x80,0xD6);
     Status = PcdSet64S (PcdSerialRegisterBase, 0x3f8);
+IoWrite8(0x80,0xD7);
     if (RETURN_ERROR (Status)) {
+IoWrite8(0x80,0xD8);
       return Status;
     }
+IoWrite8(0x80,0xDA);
     Status = PcdSet32S (PcdSerialRegisterStride, 1);
+IoWrite8(0x80,0xDB);
     if (RETURN_ERROR (Status)) {
+IoWrite8(0x80,0xDC);
       return Status;
     }
+IoWrite8(0x80,0xDE);
     Status = PcdSet32S (PcdSerialBaudRate, 115200);
+IoWrite8(0x80,0xDF);
     if (RETURN_ERROR (Status)) {
+IoWrite8(0x80,0xF0);
       return Status;
     }
+IoWrite8(0x80,0xF2);
     return RETURN_SUCCESS;
   }
 

@@ -19,6 +19,14 @@
 #ifndef FDT_LIB_H_
 #define FDT_LIB_H_
 
+#define MEMORY_ATTRIBUTE_DEFAULT  (EFI_RESOURCE_ATTRIBUTE_PRESENT                   | \
+                                     EFI_RESOURCE_ATTRIBUTE_INITIALIZED             | \
+                                     EFI_RESOURCE_ATTRIBUTE_TESTED                  | \
+                                     EFI_RESOURCE_ATTRIBUTE_UNCACHEABLE             | \
+                                     EFI_RESOURCE_ATTRIBUTE_WRITE_COMBINEABLE       | \
+                                     EFI_RESOURCE_ATTRIBUTE_WRITE_THROUGH_CACHEABLE | \
+                                     EFI_RESOURCE_ATTRIBUTE_WRITE_BACK_CACHEABLE    )
+
 /**
   Flattened Device Tree definition
 
@@ -413,7 +421,7 @@ EFIAPI
 FdtGetName (
   IN VOID         *Fdt,
   IN INT32        NodeOffset,
-  IN UINT32       *Length
+  IN INT32       *Length
   );
 
 /**

@@ -24,6 +24,7 @@
   BaseLib
   HobLib
   DxeHobListLib
+  IoLib
 
 [Packages]
   MdePkg/MdePkg.dec

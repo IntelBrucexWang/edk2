@@ -418,7 +418,7 @@ EFIAPI
 FdtGetName (
   IN VOID         *Fdt,
   IN INT32        NodeOffset,
-  IN UINT32       *Length
+  IN INT32       *Length
   )
 {
   return fdt_get_name (Fdt, NodeOffset, Length);

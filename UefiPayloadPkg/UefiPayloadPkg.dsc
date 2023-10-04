@@ -616,6 +616,7 @@
         !if gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 1 || gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 2
           FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
           NULL|UefiPayloadPkg/Library/FdtParseLib/FdtParseLib.inf
+          NULL|UefiPayloadPkg/Library/HobParseLib/HobParseLib.inf
         !endif
     }
     !elseif $(UNIVERSAL_PAYLOAD_FORMAT) == "FIT"
@@ -627,6 +628,7 @@
         !if gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 1 || gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 2
           FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
           NULL|UefiPayloadPkg/Library/FdtParseLib/FdtParseLib.inf
+          NULL|UefiPayloadPkg/Library/HobParseLib/HobParseLib.inf
         !endif
     }
     !else
@@ -647,6 +649,7 @@
         !if gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 1 || gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 2
           FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
           NULL|UefiPayloadPkg/Library/FdtParseLib/FdtParseLib.inf
+          NULL|UefiPayloadPkg/Library/HobParseLib/HobParseLib.inf
         !endif
     }
     !elseif $(UNIVERSAL_PAYLOAD_FORMAT) == "FIT"
@@ -658,6 +661,7 @@
         !if gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 1 || gUefiPayloadPkgTokenSpaceGuid.PcdFdtSupport == 2
           FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
           NULL|UefiPayloadPkg/Library/FdtParseLib/FdtParseLib.inf
+          NULL|UefiPayloadPkg/Library/HobParseLib/HobParseLib.inf
         !endif
     }
     !else

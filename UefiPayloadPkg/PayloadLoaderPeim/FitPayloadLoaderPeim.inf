@@ -53,7 +53,7 @@
   gPcAtChipsetPkgTokenSpaceGuid.PcdRtcTargetRegister
 
 [Guids]
-
+  gUniversalPayloadDeviceTreeGuid
   gUniversalPayloadBaseGuid              ## PRODUCES
 
 [Depex]
